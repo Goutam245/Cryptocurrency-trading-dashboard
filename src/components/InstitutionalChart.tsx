@@ -1,13 +1,10 @@
-
-import { useState, lazy, Suspense } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Download, Settings, Maximize2 } from 'lucide-react';
+import { Download, Settings, Maximize2 } from 'lucide-react';
+import * as TVWidgets from 'react-ts-tradingview-widgets';
 import { useWebSocketPrice } from '@/hooks/useWebSocketPrice';
 
-// Lazy load TradingView for optimal bundle size and performance
-const TradingViewWidget = lazy(() => 
-  import('react-tradingview-widget')
-);
+const { AdvancedChart } = TVWidgets;
 
 const InstitutionalChart = () => {
   const [selectedPair, setSelectedPair] = useState('BTCUSDT');
@@ -25,23 +22,27 @@ const InstitutionalChart = () => {
 
   const handleExportPDF = () => {
     console.log('Exporting compliance report...');
-    // Implementation for PDF export would go here
+    // PDF export logic here
   };
 
   return (
     <div className="glass-card p-6 rounded-lg animate-fade-in">
-      {/* Chart Header */}
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-4">
           <h2 className="text-xl font-semibold">Professional Charts</h2>
           <div className="flex items-center space-x-2">
-            <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-success animate-pulse' : 'bg-warning'}`} />
+            <div
+              className={`w-2 h-2 rounded-full ${
+                isConnected ? 'bg-success animate-pulse' : 'bg-warning'
+              }`}
+            />
             <span className="text-xs text-muted-foreground">
               {latency}ms latency
             </span>
           </div>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="sm" onClick={handleExportPDF}>
             <Download className="w-4 h-4 mr-2" />
@@ -58,7 +59,7 @@ const InstitutionalChart = () => {
         </div>
       </div>
 
-      {/* Trading Pair Selector */}
+      {/* Pair and Timeframe Selector */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
           <span className="text-sm font-medium text-muted-foreground">Pair:</span>
@@ -66,7 +67,7 @@ const InstitutionalChart = () => {
             {tradingPairs.map((pair) => (
               <Button
                 key={pair.symbol}
-                variant={selectedPair === pair.symbol ? "default" : "outline"}
+                variant={selectedPair === pair.symbol ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setSelectedPair(pair.symbol)}
                 className="text-xs"
@@ -78,12 +79,14 @@ const InstitutionalChart = () => {
         </div>
 
         <div className="flex items-center space-x-2">
-          <span className="text-sm font-medium text-muted-foreground">Timeframe:</span>
+          <span className="text-sm font-medium text-muted-foreground">
+            Timeframe:
+          </span>
           <div className="flex space-x-1">
             {timeframes.map((tf) => (
               <Button
                 key={tf}
-                variant={timeframe === tf ? "default" : "outline"}
+                variant={timeframe === tf ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setTimeframe(tf)}
                 className="text-xs px-2"
@@ -95,7 +98,7 @@ const InstitutionalChart = () => {
         </div>
       </div>
 
-      {/* Live Price Display */}
+      {/* Live Price Section */}
       {data && (
         <div className="mb-4 p-3 bg-secondary/20 rounded-lg">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -119,53 +122,28 @@ const InstitutionalChart = () => {
         </div>
       )}
 
-      {/* TradingView Chart with Enhanced Indicators and Performance Optimization */}
+      {/* TradingView Chart */}
       <div className="h-[500px] w-full border border-border/50 rounded-lg overflow-hidden">
-        <Suspense fallback={
-          <div className="h-full w-full bg-secondary/20 animate-pulse rounded-lg flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-              <p className="text-sm text-muted-foreground">Loading Professional Chart...</p>
-            </div>
-          </div>
-        }>
-          <TradingViewWidget
-            symbol={`BINANCE:${selectedPair}`}
-            theme="dark"
-            locale="en"
-            autosize={true}
-            hide_side_toolbar={false}
-            allow_symbol_change={true}
-            interval={timeframe}
-            toolbar_bg="#141413"
-            enable_publishing={false}
-            hide_top_toolbar={false}
-            save_image={false}
-            studies={[
-              "MASimple@tv-basicstudies",
-              "RSI@tv-basicstudies", 
-              "MACD@tv-basicstudies",
-              "BB@tv-basicstudies",
-              "Volume@tv-basicstudies"
-            ]}
-            overrides={{
-              "paneProperties.background": "#141413",
-              "paneProperties.vertGridProperties.color": "#363c4e",
-              "paneProperties.horzGridProperties.color": "#363c4e",
-              "symbolWatermarkProperties.transparency": 90,
-              "scalesProperties.textColor": "#AAA",
-              "mainSeriesProperties.candleStyle.wickUpColor": "#336854",
-              "mainSeriesProperties.candleStyle.wickDownColor": "#843c39"
+        {AdvancedChart ? (
+          <AdvancedChart
+            widgetProps={{
+              symbol: `BINANCE:${selectedPair}`,
+              interval: timeframe,
+              theme: 'dark',
+              locale: 'en',
+              autosize: true,
+              style: 1,
+              hide_top_toolbar: false,
+              hide_side_toolbar: false,
+              container_id: 'institutional_chart',
             }}
-            container_id="institutional_chart"
-            style={1}
-            width={800}
-            height={500}
           />
-        </Suspense>
+        ) : (
+          <p>TradingView widget not available.</p>
+        )}
       </div>
 
-      {/* Chart Footer */}
+      {/* Footer */}
       <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
         <div className="flex items-center space-x-4">
           <span>SOC 2 Type II Compliant</span>
@@ -174,9 +152,7 @@ const InstitutionalChart = () => {
           <span>•</span>
           <span>Real-time WebSocket Feed</span>
         </div>
-        <div>
-          Last updated: {new Date().toLocaleTimeString()}
-        </div>
+        <div>Last updated: {new Date().toLocaleTimeString()}</div>
       </div>
     </div>
   );
